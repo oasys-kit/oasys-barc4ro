@@ -8,8 +8,8 @@ This library allows to simulate compound refractive lenses under the projection 
 
 ###### barc4RefractiveOptics contents:
 
-- barc4RefractiveOptics
-- barc4RefractiveOptics_examples (soon)
+- barc4
+- barc4_examples
 
 An in depth description of this work can be found in: 
 
