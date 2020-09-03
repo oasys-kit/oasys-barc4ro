@@ -1,15 +1,10 @@
-# oasys-barc4
+# oasys-barc4ro
 
 This is the distribution for OASYS of:
 
-**B**iblioteca **A**uxiliar do **R**afael **C**elestre for X-ray refractive optics.
+**B**iblioteca **A**uxiliar do **R**afael **C**elestre for X-ray **R**efractive **O**ptics.
 
 This library allows to simulate compound refractive lenses under the projection approximation, valid for the conditions imposed by the paraxial approximation in the physical optics framework.
-
-###### barc4RefractiveOptics contents:
-
-- barc4
-- barc4_examples
 
 An in depth description of this work can be found in: 
 
