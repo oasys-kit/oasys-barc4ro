@@ -1,0 +1,6 @@
+recursive-include barc4ro *.pyx
+recursive-include barc4ro *.py
+recursive-include barc4ro *.dat
+
+include README.md
+include LICENSE
