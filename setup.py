@@ -15,7 +15,7 @@ VERSION = '1.0.0'
 ISRELEASED = False
 
 DESCRIPTION = 'Biblioteca Auxiliar do Rafael Celestre for X-ray Refractive Optics'
-README_FILE = os.path.join(os.path.dirname(__file__), 'README.md')
+README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Rafael Celestre, Luca Rebuffi'
 AUTHOR_EMAIL = 'rafael.celestre@esrf.fr'
