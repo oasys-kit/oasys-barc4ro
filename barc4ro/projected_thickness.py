@@ -351,7 +351,7 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                 _wall_thick_ffs = _wall_thick
                 _apert_h_ffs = _apert_h
 
-        elif _foc_plane == 2 or _foc_plane == 3:
+        if _foc_plane == 2 or _foc_plane == 3:
             neg_values_ffs_y = False
             if _wt_offst_ffs != 0:
                 _wall_thick_ffs = _wall_thick + _wt_offst_ffs*2
@@ -434,7 +434,7 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                     _wall_thick_bfs = _wall_thick
                     _apert_h_bfs = _apert_h
 
-            elif _foc_plane == 2 or _foc_plane == 3:
+            if _foc_plane == 2 or _foc_plane == 3:
                 neg_values_bfs_y = False
                 if _wt_offst_bfs != 0:
                     _wall_thick_bfs = _wall_thick + _wt_offst_bfs * 2
