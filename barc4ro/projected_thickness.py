@@ -366,9 +366,12 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
 
         # ------------- calculation of thickness profile in projection approximation
 
-        X, Y = np.meshgrid(x, y)
+        # X, Y = np.meshgrid(x, y)
+        # mask = np.zeros((_ny, _nx), dtype=bool)
 
-        mask = np.zeros((_ny, _nx), dtype=bool)
+        X = np.outer(x, np.ones_like(y))
+        Y = np.outer(np.ones_like(x), y)
+        mask = np.zeros((_nx, _ny), dtype=bool)
 
         if _aperture == 'r':
             mask[X - _xc - _offst_ffs_x < -0.5 * _apert_h_ffs] = True
@@ -380,7 +383,16 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
             R = ((X - _xc - _offst_ffs_x)**2 + (Y - _yc - _offst_ffs_y) ** 2) ** 0.5
             mask[R > 0.5 * _apert_h_ffs] = True
 
-        delta_z_ffs = (X - _xc - _offst_ffs_x)**2 /_r_min /2 + (Y - _yc - _offst_ffs_y) ** 2 /_r_min /2 + _wall_thick_ffs/2
+        # delta_z_ffs = (X - _xc - _offst_ffs_x)**2 /_r_min /2 + (Y - _yc - _offst_ffs_y) ** 2 /_r_min /2 + _wall_thick_ffs/2
+        #  :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
+        if _foc_plane == 3:
+            delta_z_ffs = (X - _xc - _offst_ffs_x) ** 2 / _r_min / 2 + (Y - _yc - _offst_ffs_y) ** 2 / _r_min / 2 + _wall_thick_ffs / 2
+        elif _foc_plane == 2:
+            delta_z_ffs = (Y - _yc - _offst_ffs_y) ** 2 / _r_min / 2 + _wall_thick_ffs / 2
+        elif _foc_plane == 1:
+            delta_z_ffs = (X - _xc - _offst_ffs_x) ** 2 / _r_min / 2 + _wall_thick_ffs / 2
+
+
         delta_z_ffs[mask] = L_half
 
         if neg_values_ffs_x:
@@ -449,9 +461,13 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
 
             # ------------- calculation of thickness profile in projection approximation
 
-            X, Y = np.meshgrid(x, y)
+            # X, Y = np.meshgrid(x, y)
+            # mask = np.zeros((_ny, _nx), dtype=bool)
 
-            mask = np.zeros((_ny, _nx), dtype=bool)
+            X = np.outer(x, np.ones_like(y))
+            Y = np.outer(np.ones_like(x), y)
+            mask = np.zeros((_nx, _ny), dtype=bool)
+
 
             if _aperture == 'r':
                 mask[X - _xc - _offst_bfs_x < -0.5 * _apert_h_bfs] = True
@@ -464,6 +480,16 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                 mask[R > 0.5 * _apert_h_bfs] = True
 
             delta_z_bfs = (X - _xc - _offst_bfs_x) ** 2 / _r_min / 2 + (Y - _yc - _offst_bfs_y) ** 2 / _r_min / 2 + _wall_thick_bfs / 2
+            #  :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
+            if _foc_plane == 3:
+                delta_z_bfs = (X - _xc - _offst_bfs_x) ** 2 / _r_min / 2 + (
+                            Y - _yc - _offst_bfs_y) ** 2 / _r_min / 2 + _wall_thick_bfs / 2
+            elif _foc_plane == 2:
+                delta_z_bfs = (Y - _yc - _offst_bfs_y) ** 2 / _r_min / 2 + _wall_thick_bfs / 2
+            elif _foc_plane == 1:
+                delta_z_bfs = (X - _xc - _offst_bfs_x) ** 2 / _r_min / 2 + _wall_thick_bfs / 2
+
+
             delta_z_bfs[mask] = L_half
 
             if neg_values_bfs_x:
