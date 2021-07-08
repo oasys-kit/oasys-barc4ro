@@ -92,6 +92,7 @@ def proj_thick_1D_crl(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=
             x = np.linspace(-k * _apert_h, k * _apert_h, _nx)
         else:
             x = _axis
+
         # ========================================================
         # ========== Front Focusing Surface calculations =========
         # ========================================================
@@ -228,7 +229,7 @@ def proj_thick_1D_crl(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=
 
 
 def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_thick=0, _xc=0, _yc=0, _nx=1001,
-                      _ny=1001,_ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
+                      _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
                       _tilt_ffs_x=0, _tilt_ffs_y=0, _ang_rot_ez_ffs=0, _wt_offst_ffs=0, _offst_bfs_x=0, _offst_bfs_y=0,
                       _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0,_wt_offst_bfs=0, isdgr=False, project=True,
                       _axis_x=None, _axis_y=None, _aperture=None):
@@ -341,6 +342,9 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
         neg_values_ffs_x = False
         neg_values_ffs_y = False
 
+        _apert_h_ffs = _apert_h
+        _apert_v_ffs = _apert_v
+
         if _foc_plane == 1 or _foc_plane == 3:
             if _wt_offst_ffs != 0:
                 _wall_thick_ffs = _wall_thick + _wt_offst_ffs*2
@@ -349,7 +353,6 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                     neg_values_ffs_x = True
             else:
                 _wall_thick_ffs = _wall_thick
-                _apert_h_ffs = _apert_h
 
         if _foc_plane == 2 or _foc_plane == 3:
             neg_values_ffs_y = False
@@ -360,7 +363,6 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                     neg_values_ffs_y = True
             else:
                 _wall_thick_ffs = _wall_thick
-                _apert_v_ffs = _apert_v
 
         # ------------- calculation of thickness profile in projection approximation
 
@@ -423,6 +425,8 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
             # ------------- new aperture resulting from different penetration depths
             neg_values_bfs_x = False
             neg_values_bfs_y = False
+            _apert_h_bfs = _apert_h
+            _apert_v_bfs = _apert_v
 
             if _foc_plane == 1 or _foc_plane == 3:
                 if _wt_offst_bfs != 0:
@@ -432,7 +436,6 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                         neg_values_bfs_x = True
                 else:
                     _wall_thick_bfs = _wall_thick
-                    _apert_h_bfs = _apert_h
 
             if _foc_plane == 2 or _foc_plane == 3:
                 neg_values_bfs_y = False
@@ -443,7 +446,6 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
                         neg_values_bfs_y = True
                 else:
                     _wall_thick_bfs = _wall_thick
-                    _apert_v_bfs = _apert_v
 
             # ------------- calculation of thickness profile in projection approximation
 
