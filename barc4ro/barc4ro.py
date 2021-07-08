@@ -109,12 +109,11 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
                                       _r_min=_r_min, _n=surfs, _wall_thick=_wall_thick, _xc=_xc, _yc=_yc, _nx=_nx,
                                       _ny=_ny, _ang_rot_ex=_ang_rot_ex, _ang_rot_ey=_ang_rot_ey, _ang_rot_ez=_ang_rot_ez,
                                       _offst_ffs_x=_offst_ffs_x, _offst_ffs_y=_offst_ffs_y, _tilt_ffs_x=_tilt_ffs_x,
-                                      _tilt_ffs_y=_tilt_ffs_y, _ang_rot_ez_ffs=0, _wt_offst_ffs=_wt_offst_ffs,
+                                      _tilt_ffs_y=_tilt_ffs_y, _ang_rot_ez_ffs=_ang_rot_ez_ffs, _wt_offst_ffs=_wt_offst_ffs,
                                       _offst_bfs_x=_offst_bfs_x, _offst_bfs_y=_offst_bfs_y, _tilt_bfs_x=_tilt_bfs_x,
                                       _tilt_bfs_y=_tilt_bfs_y, _ang_rot_ez_bfs=_ang_rot_ez_bfs,
                                       _wt_offst_bfs=_wt_offst_bfs, isdgr=isdgr, project=True, _axis_x=None,
                                       _axis_y=None, _aperture='c')
-
 
     _xc = 0.0
     _yc = 0.0
@@ -164,22 +163,21 @@ def srwl_opt_setup_CRL_metrology(_height_prof_data, _mesh, _delta, _atten_len, _
     dx = (_mesh.xFin - _mesh.xStart) / _mesh.nx
     dy = (_mesh.yFin - _mesh.yStart) / _mesh.ny
 
-
     pad_y = int(_mesh.ny*0.1)
     pad_x = int(_mesh.nx*0.1)
 
     thcknss = np.pad(_height_prof_data, ((pad_y, pad_y),(pad_x, pad_x)), 'constant', constant_values=0)
 
     if _ang_rot_ex != 0 or _ang_rot_ey != 0:
-        print('OI')
+
         _ny, _nx = thcknss.shape
         xStart = - (dx * (_nx - 1)) / 2.0
         xFin = xStart + dx * (_nx - 1)
         yStart = - (dy * (_ny - 1)) / 2.0
         yFin = yStart + dy * (_ny - 1)
         _ny, _nx = thcknss.shape
-        x = np.linspace(_mesh.xStart, _mesh.xFin, _nx)
-        y = np.linspace(_mesh.yStart, _mesh.yFin, _ny)
+        x = np.linspace(xStart, xFin, _nx)
+        y = np.linspace(yStart, yFin, _ny)
         tilt = np.zeros(thcknss.shape)
         rz = thcknss
         rx, ry, rz = at_rotate_2D_nested_loop(x, y, rz, th_x=_ang_rot_ex, th_y=_ang_rot_ey, isdgr=isdgr)
@@ -253,4 +251,4 @@ def srwl_opt_setup_CRL_errors(_z_coeffs, _pol, _delta, _atten_len, _apert_h, _ap
     arTr[0::2] = np.reshape(amplitude_transmission,(_nx*_ny))
     arTr[1::2] = np.reshape(optical_path_diff,(_nx*_ny))
 
-    return SRWLOptT(_nx, _ny, xFin-xStart, yFin-yStart, _arTr=arTr, _extTr=1, _Fx=1e23, _Fy=1e23, _x=_xc, _y=_yc)
+    return SRWLOptT(_nx, _ny, xFin-xStart, yFin-yStart, _arTr=arTr, _extTr=1, _Fx=fx, _Fy=fy, _x=_xc, _y=_yc)
