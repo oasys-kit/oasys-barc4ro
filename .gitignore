@@ -2,3 +2,4 @@
 /dist/
 /barc4ro/version.py
 /.idea/
+*pycache*
