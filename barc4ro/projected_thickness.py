@@ -229,7 +229,7 @@ def proj_thick_1D_crl(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=
 
 
 def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_thick=0, _xc=0, _yc=0, _nx=1001,
-                      _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
+                      _ny=1001,_ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
                       _tilt_ffs_x=0, _tilt_ffs_y=0, _ang_rot_ez_ffs=0, _wt_offst_ffs=0, _offst_bfs_x=0, _offst_bfs_y=0,
                       _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0,_wt_offst_bfs=0, isdgr=False, project=True,
                       _axis_x=None, _axis_y=None, _aperture=None):
@@ -554,23 +554,23 @@ def polynomial_surface_2D(_z_coeffs, _pol,  _apert_h, _apert_v, _nx=1001, _ny=10
 
     npix = [int(_ny/2), int(_nx/2)]
 
-    if _pol is 'c':
+    if _pol == 'c':
         wfr = calc_zernike_circ(_z_coeffs[0:36], npix[0], zern_data={}, mask=True)
-    elif _pol is 'r':
+    elif _pol == 'r':
         wfr = calc_zernike_rec(_z_coeffs[0:15], npix, zern_data={}, mask=True)
-    elif _pol is 'l':
+    elif _pol == 'l':
         wfr = calc_legendre(_z_coeffs[0:44], npix, leg_data={}, mask=True)
 
     if piston is not np.nan:
-        if _pol is 'c':
+        if _pol == 'c':
             print('Zernike circle polynomial coefficients:')
             Zcoeffs, fit, residues = fit_zernike_circ(wfr, nmodes=37, startmode=1, rec_zern=False)
 
-        elif _pol is 'r':
+        elif _pol == 'r':
             print('Zernike rectangular polynomial coefficients:')
             Zcoeffs, fit, residues = fit_zernike_rec(wfr, nmodes=15, startmode=1, rec_zern=True)
 
-        elif _pol is 'l':
+        elif _pol == 'l':
             print('Legendre 2D polynomial coefficients:')
             Zcoeffs, fit, residues = fit_legendre(wfr, nmodes=44, startmode=1, rec_leg=True)
         print(wfr.shape)
@@ -580,7 +580,7 @@ def polynomial_surface_2D(_z_coeffs, _pol,  _apert_h, _apert_v, _nx=1001, _ny=10
         k = 1
         coeffslist = ''
         for i in range(Zcoeffs.size):
-            if k % 10 is 0:
+            if k % 10 == 0:
                 coeffslist += 'P' + str(int(k)) + ' = %.2e; \n' % Zcoeffs[i]
             else:
                 coeffslist += 'P' + str(int(k)) + ' = %.2e; ' % Zcoeffs[i]
@@ -842,4 +842,3 @@ def at_rotate_2D_2steps(x, y, z, th_x=0, th_y=0, isdgr=False, project=False):
             zp = t_profile
 
     return x[0, :], y[:, 0], zp
-
