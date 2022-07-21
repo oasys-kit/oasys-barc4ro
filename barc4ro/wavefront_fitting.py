@@ -242,7 +242,7 @@ def fit_zernike_circ(wavefront, zern_data={}, nmodes=37, startmode=1, fitweight=
     wf_zern_vec = 0
     grid_vec = grid_mask.reshape(-1)
     # if (fitweight != None):
-    if (fitweight is not None):
+    if (fitweight != None):
         # Weighed LSQ fit with data. Only fit inside grid_mask
 
         # Multiply weight with binary mask, reshape to vector
@@ -487,7 +487,7 @@ def calc_zern_rec_basis(nmodes, npix, modestart=1, calc_covmat=False):
 
     if (nmodes <= 0):
         return {'modes':[], 'modesmat':[], 'covmat':0, 'covmat_in':0, 'mask':[[0]]}
-    if (len(npix) is not 2):
+    if (len(npix) != 2):
         raise ValueError("npix sould be [ny, nx]")
     if (modestart <= 0):
         raise ValueError("**modestart** Noll index should be > 0")
@@ -694,35 +694,35 @@ def zernike_rec(j, a, rho, phi):
     tau = 1/(128*v*a**4*(1-a**2)**2)
     eta = 9 - 45*a**2 + 139*a**4 - 237*a**6 + 201*a**8 - 67*a**10
     chi = 35-70*a**2+62*a**4
-    if j is 1:
+    if j == 1:
         return np.ones(rho.shape)
-    elif j is 2:
+    elif j == 2:
         return np.sqrt(3)/a*rho*np.cos(phi)
-    elif j is 3:
+    elif j == 3:
         return np.sqrt(3/(1-a**2))*rho*np.sin(phi)
-    elif j is 4:
+    elif j == 4:
         return np.sqrt(5)/2/np.sqrt(1-2*a**2+2*a**4)*(3*rho**2-1)
-    elif j is 5:
+    elif j == 5:
         return 3/2/a/np.sqrt(1-a**2)*rho**2*np.sin(2*phi)
-    elif j is 6:
+    elif j == 6:
         return np.sqrt(5)/2/a**2/(1-a**2)/np.sqrt(1-2*a**2+2*a**4)*(3*(1-2*a**2+2*a**4)*rho**2*np.cos(2*phi) + 3*(1-2*a**2)*rho**2-2*a**2*(1-a**2)*(1-2*a**2))
-    elif j is 7:
+    elif j == 7:
         return np.sqrt(21)/2/np.sqrt(27-81*a**2+116*a**4-62*a**6)*(15*rho**2-9+4*a**2)*rho*np.sin(phi)
-    elif j is 8:
+    elif j == 8:
         return np.sqrt(21)/2/a/np.sqrt(35-70*a**2+62*a**4)*(15*rho**2-5-4*a**2)*rho*np.cos(phi)
-    elif j is 9:
+    elif j == 9:
         return (np.sqrt(5)*np.sqrt((27-54*a**2+62*a**4)/(1-a**2))/(8*a**2*(27-81*a**2+116*a**4-62*a**6)))*((27-54*a**2+62*a**4)*rho*np.sin(3*phi)-3*(4*a**2*(3-13*a**2+10*a**4)-(9-18*a**2-26*a**4))*rho*np.sin(phi))
-    elif j is 10:
+    elif j == 10:
         return (np.sqrt(5)/(8*a**3*(1-a**2)*np.sqrt(chi)))*(chi*rho**3*np.cos(3*phi)-3*(4*a**2*(7-17*a**2+10*a**4) - chi*rho**2)*rho*np.cos(phi))
-    elif j is 11:
+    elif j == 11:
         return 1/8/mu*(315*rho**4+30*(1-2*a**2)*rho**2*np.cos(2*phi)-240*rho**2+27+16*a*2-16*a**4)
-    elif j is 12:
+    elif j == 12:
         return (3*mu/(8*a**2*v*eta))*(315*(1-2*a**2)*(1-2*a**2+2*a**4)*rho**4+5*(7*mu**2*rho**2-21+72*a**2-225*a**4 + 306*a**6-152*a**8)*rho**2*np.cos(2*phi)-15*(1-2*a**2)*(7+4*a**2-71*a**4+134*a**6-67*a**8)*rho**2 + a**2*(1-a**2)*(1-2*a**2)*(70-233*a**2+233*a**4))
-    elif j is 13:
+    elif j == 13:
         return np.sqrt(21)/(4*a*np.sqrt(1-3*a**2+4*a**4-2*a**6))*(5*rho**2-3)*rho**2*np.sin(2*phi)
-    elif j is 14:
+    elif j == 14:
         return 6*tau*(5*v**2*rho**4*np.cos(4*phi)-20*(1-2*a**2)*(6*a**2*(7-16*a**2+18*a**4-9*a**6) - 49*(1-2*a**2+2*a**4)*rho**2)*rho**2*np.cos(phi)+8*a**4*(1-a**2)**2*(21-62*a**2+62*a**4) - 120*a**2*(7-30*a**2+46*a**4-23*a**6)*rho**2+15*(49-196*a**2+282*a**4-172*a**6+86*a**8)*rho**4)
-    elif j is 15:
+    elif j == 15:
         return (np.sqrt(21)/(8*a**3*np.sqrt((1-a**2)**3))/np.sqrt(1-2*a**2+2*a**4)) * (-(1-2*a**2)*(6*a**2-6*a**4-5*rho**2)*rho**2*np.sin(2*phi)+(5/2)*(1-2*a**2+2**a**4)*rho**4*np.sin(4*phi))
 
 
@@ -748,7 +748,7 @@ def calc_legendre_basis(nmodes, npix, modestart=1, calc_covmat=False):
 
     if (nmodes <= 0):
         return {'modes':[], 'modesmat':[], 'covmat':0, 'covmat_in':0, 'mask':[[0]]}
-    if (len(npix) is not 2):
+    if (len(npix) != 2):
         raise ValueError("npix sould be [ny, nx]")
     if (modestart <= 0):
         raise ValueError("**modestart** Noll index should be > 0")
@@ -857,7 +857,7 @@ def fit_legendre(wavefront, leg_data={}, nmodes=44, startmode=1, fitweight=None,
     wf_zern_vec = 0
     grid_vec = grid_mask.reshape(-1)
     # if (fitweight != None):
-    if (fitweight is not None):
+    if (fitweight != None):
         # Weighed LSQ fit with data. Only fit inside grid_mask
 
         # Multiply weight with binary mask, reshape to vector
@@ -951,95 +951,95 @@ def legendre_2D(j, X, Y, norm=True):
     @return 2D Legendre mode j with identical shape as X and Y
 
     """
-    if j is 1:      # Piston
+    if j == 1:      # Piston
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(0, Y, norm))
-    elif j is 2:    # x-tilt
+    elif j == 2:    # x-tilt
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(0, Y, norm))
-    elif j is 3:    # y-tilt
+    elif j == 3:    # y-tilt
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(1, Y, norm))
-    elif j is 4:    # x-defocus
+    elif j == 4:    # x-defocus
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(0, Y, norm))
-    elif j is 5:
+    elif j == 5:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(1, Y, norm))
-    elif j is 6:    # y-defocus
+    elif j == 6:    # y-defocus
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(2, Y, norm))
-    elif j is 7:    # primary x-coma
+    elif j == 7:    # primary x-coma
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(0, Y, norm))
-    elif j is 8:
+    elif j == 8:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(1, Y, norm))
-    elif j is 9:
+    elif j == 9:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(2, Y, norm))
-    elif j is 10:   # primary y-coma
+    elif j == 10:   # primary y-coma
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(3, Y, norm))
-    elif j is 11:   # primary x-spherical
+    elif j == 11:   # primary x-spherical
         return np.multiply(legendre_1D(4, X, norm), legendre_1D(0, Y, norm))
-    elif j is 12:
+    elif j == 12:
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(1, Y, norm))
-    elif j is 13:
+    elif j == 13:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(2, Y, norm))
-    elif j is 14:
+    elif j == 14:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(3, Y, norm))
-    elif j is 15:   # primary y-spherical
+    elif j == 15:   # primary y-spherical
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(4, Y, norm))
-    elif j is 16:   # secondary x-coma
+    elif j == 16:   # secondary x-coma
         return np.multiply(legendre_1D(5, X, norm), legendre_1D(0, Y, norm))
-    elif j is 17:
+    elif j == 17:
         return np.multiply(legendre_1D(4, X, norm), legendre_1D(1, Y, norm))
-    elif j is 18:
+    elif j == 18:
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(2, Y, norm))
-    elif j is 19:
+    elif j == 19:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(3, Y, norm))
-    elif j is 20:
+    elif j == 20:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(4, Y, norm))
-    elif j is 21:   # secondary y-coma
+    elif j == 21:   # secondary y-coma
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(5, Y, norm))
-    elif j is 22:   # secondary x-spherical
+    elif j == 22:   # secondary x-spherical
         return np.multiply(legendre_1D(6, X, norm), legendre_1D(0, Y, norm))
-    elif j is 23:
+    elif j == 23:
         return np.multiply(legendre_1D(5, X, norm), legendre_1D(1, Y, norm))
-    elif j is 24:
+    elif j == 24:
         return np.multiply(legendre_1D(4, X, norm), legendre_1D(2, Y, norm))
-    elif j is 25:
+    elif j == 25:
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(3, Y, norm))
-    elif j is 26:
+    elif j == 26:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(4, Y, norm))
-    elif j is 27:
+    elif j == 27:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(5, Y, norm))
-    elif j is 28:   # secondary y-spherical
+    elif j == 28:   # secondary y-spherical
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(6, Y, norm))
-    elif j is 29:   # tertiary x-coma
+    elif j == 29:   # tertiary x-coma
         return np.multiply(legendre_1D(7, X, norm), legendre_1D(0, Y, norm))
-    elif j is 30:
+    elif j == 30:
         return np.multiply(legendre_1D(6, X, norm), legendre_1D(1, Y, norm))
-    elif j is 31:
+    elif j == 31:
         return np.multiply(legendre_1D(5, X, norm), legendre_1D(2, Y, norm))
-    elif j is 32:
+    elif j == 32:
         return np.multiply(legendre_1D(4, X, norm), legendre_1D(3, Y, norm))
-    elif j is 33:
+    elif j == 33:
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(4, Y, norm))
-    elif j is 34:
+    elif j == 34:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(5, Y, norm))
-    elif j is 35:
+    elif j == 35:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(6, Y, norm))
-    elif j is 36:   # tertiary y-coma
+    elif j == 36:   # tertiary y-coma
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(7, Y, norm))
-    elif j is 37:   # tertiary x-spherical
+    elif j == 37:   # tertiary x-spherical
         return np.multiply(legendre_1D(8, X, norm), legendre_1D(0, Y, norm))
-    elif j is 37:
+    elif j == 37:
         return np.multiply(legendre_1D(7, X, norm), legendre_1D(1, Y, norm))
-    elif j is 38:
+    elif j == 38:
         return np.multiply(legendre_1D(6, X, norm), legendre_1D(2, Y, norm))
-    elif j is 39:
+    elif j == 39:
         return np.multiply(legendre_1D(5, X, norm), legendre_1D(3, Y, norm))
-    elif j is 40:
+    elif j == 40:
         return np.multiply(legendre_1D(4, X, norm), legendre_1D(4, Y, norm))
-    elif j is 41:
+    elif j == 41:
         return np.multiply(legendre_1D(3, X, norm), legendre_1D(5, Y, norm))
-    elif j is 42:
+    elif j == 42:
         return np.multiply(legendre_1D(2, X, norm), legendre_1D(6, Y, norm))
-    elif j is 43:
+    elif j == 43:
         return np.multiply(legendre_1D(1, X, norm), legendre_1D(7, Y, norm))
-    elif j is 44:   # tertiary y-spherical
+    elif j == 44:   # tertiary y-spherical
         return np.multiply(legendre_1D(0, X, norm), legendre_1D(8, Y, norm))
 
 
@@ -1059,21 +1059,21 @@ def legendre_1D(Ln, X, norm=True):
     if norm is True:
         k = np.sqrt(2*Ln + 1)
 
-    if Ln is 0:     # Piston
+    if Ln == 0:     # Piston
         return np.ones(X.shape) * k
-    elif Ln is 1:     # Tilt
+    elif Ln == 1:     # Tilt
         return X
-    elif Ln is 2:     # Defocus
+    elif Ln == 2:     # Defocus
         return (3*X**2 -1)/2
-    elif Ln is 3:     # Coma
+    elif Ln == 3:     # Coma
         return (5*X**3 - 3*X)/2
-    elif Ln is 4:     # Spherical aberration
+    elif Ln == 4:     # Spherical aberration
         return (35*X**4 - 30*X**2 + 3)/8
-    elif Ln is 5:     # Secondary coma
+    elif Ln == 5:     # Secondary coma
         return (63*X**5 - 70*X**3 + 15*X)/8
-    elif Ln is 6:     # Secondary spherical aberration
+    elif Ln == 6:     # Secondary spherical aberration
         return (231*X**6 - 315*X**4 + 105*X**2 - 5)/16
-    elif Ln is 7:     # Tertiary coma
+    elif Ln == 7:     # Tertiary coma
         return (429*X**7 - 693*X**5 + 315*X**3 - 35*X)/16
-    elif Ln is 8:     # Tertiary spherical aberration
+    elif Ln == 8:     # Tertiary spherical aberration
         return (6435*X**8 - 12012*X**6 + 6930*X**4 -1260*X**2 + 35)/128

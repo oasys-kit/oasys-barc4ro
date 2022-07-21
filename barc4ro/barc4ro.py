@@ -52,7 +52,7 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
                        _yc=0, _e_start=0, _e_fin=0, _nx=1001, _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0,
                        _offst_ffs_x=0, _offst_ffs_y=0, _tilt_ffs_x=0, _tilt_ffs_y=0, _ang_rot_ez_ffs=0, _wt_offst_ffs=0,
                        _offst_bfs_x=0, _offst_bfs_y=0, _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0, _wt_offst_bfs=0,
-                       isdgr=False):
+                       _axis_x=None, _axis_y=None, isdgr=False):
     """
     Setup Transmission type Optical Element which simulates Compound Refractive Lens (CRL)
     :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
@@ -112,8 +112,8 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
                                       _tilt_ffs_y=_tilt_ffs_y, _ang_rot_ez_ffs=_ang_rot_ez_ffs, _wt_offst_ffs=_wt_offst_ffs,
                                       _offst_bfs_x=_offst_bfs_x, _offst_bfs_y=_offst_bfs_y, _tilt_bfs_x=_tilt_bfs_x,
                                       _tilt_bfs_y=_tilt_bfs_y, _ang_rot_ez_bfs=_ang_rot_ez_bfs,
-                                      _wt_offst_bfs=_wt_offst_bfs, isdgr=isdgr, project=True, _axis_x=None,
-                                      _axis_y=None, _aperture='c')
+                                      _wt_offst_bfs=_wt_offst_bfs, isdgr=isdgr, project=True, _axis_x=_axis_x,
+                                      _axis_y=_axis_y, _aperture='c')
 
     _xc = 0.0
     _yc = 0.0
