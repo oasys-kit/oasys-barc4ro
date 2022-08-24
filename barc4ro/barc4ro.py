@@ -52,7 +52,7 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
                        _yc=0, _e_start=0, _e_fin=0, _nx=1001, _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0,
                        _offst_ffs_x=0, _offst_ffs_y=0, _tilt_ffs_x=0, _tilt_ffs_y=0, _ang_rot_ez_ffs=0, _wt_offst_ffs=0,
                        _offst_bfs_x=0, _offst_bfs_y=0, _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0, _wt_offst_bfs=0,
-                       _axis_x=None, _axis_y=None, isdgr=False):
+                       _axis_x=None, _axis_y=None, isdgr=False, _aperture=None):
     """
     Setup Transmission type Optical Element which simulates Compound Refractive Lens (CRL)
     :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
@@ -86,7 +86,8 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
     :param _ang_rot_ez_bfs: angle [rad] of the parabolic back surface rotation about the longitudinal axis
     :param _wt_offst_bfs: excess penetration [m] of the back parabola to be added to _wall_thick (negative or positive values)
     :param isdgr: boolean for determining if angles are in degree or in radians (default)
-    :return: ransmission (SRWLOptT) type optical element which simulates a CRL
+    :param _aperture: specifies the type of aperture: circular ('c') or square ('s')
+    :return: transmission (SRWLOptT) type optical element which simulates a CRL
     """
 
     foc_len = _r_min/(_n*_delta*2)
@@ -94,10 +95,15 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
     fx = 1e+23
     fy = 1e+23
 
-    if(_foc_plane != 1):
+    if _foc_plane != 1:
         fy = foc_len
-    if(_foc_plane != 2):
+    if _foc_plane != 2:
         fx = foc_len
+
+    if _foc_plane == 3 and _aperture is None:
+        _aperture = 'c'
+    if (_foc_plane == 1 or _foc_plane == 2) and _aperture is None:
+        _aperture = 'r'
 
     if _n == 0.5:
         surfs = 1
@@ -113,7 +119,7 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
                                       _offst_bfs_x=_offst_bfs_x, _offst_bfs_y=_offst_bfs_y, _tilt_bfs_x=_tilt_bfs_x,
                                       _tilt_bfs_y=_tilt_bfs_y, _ang_rot_ez_bfs=_ang_rot_ez_bfs,
                                       _wt_offst_bfs=_wt_offst_bfs, isdgr=isdgr, project=True, _axis_x=_axis_x,
-                                      _axis_y=_axis_y, _aperture='c')
+                                      _axis_y=_axis_y, _aperture=_aperture)
 
     _xc = 0.0
     _yc = 0.0
