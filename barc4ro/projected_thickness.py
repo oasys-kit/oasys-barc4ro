@@ -280,17 +280,20 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
     if _shape == 1:
         # ------------- calculates the max inclination before obscuration happens
         if isdgr:
-            alpha_max = (np.pi/2 - np.arctan(_apert_h/2/_r_min)) * 180/np.pi
+            alpha_max_y = (np.pi/2 - np.arctan(_apert_h/2/_r_min)) * 180/np.pi
+            alpha_max_x = (np.pi/2 - np.arctan(_apert_v/2/_r_min)) * 180/np.pi
+
         else:
-             alpha_max = (np.pi/2 - np.arctan(_apert_h/2/_r_min))
+             alpha_max_y = (np.pi/2 - np.arctan(_apert_h/2/_r_min))
+             alpha_max_x = (np.pi/2 - np.arctan(_apert_v/2/_r_min))
 
-        if _ang_rot_ex>0.98*alpha_max or _tilt_ffs_x>0.98*alpha_max or _tilt_bfs_x>0.98*alpha_max:
-            print('>>> Tilt angle causes obscuration in the horizontal direction  - error in interpolation '
-                  'on the edges of the lens may be present')
+        if _ang_rot_ex>0.98*alpha_max_x or _tilt_ffs_x>0.98*alpha_max_x or _tilt_bfs_x>0.98*alpha_max_x:
+            print('>>> Tilt angle causes obscuration in the vertical direction - error in interpolation'
+                  ' on the edges of the lens may be present')
 
-        if _ang_rot_ey>0.98*alpha_max or _tilt_ffs_y>0.98*alpha_max or _tilt_bfs_y>0.98*alpha_max:
-            print('>>> Tilt angle causes obscuration in the vertical direction  - error in interpolation '
-                  'on the edges of the lens may be present')
+        if _ang_rot_ey>0.98*alpha_max_y or _tilt_ffs_y>0.98*alpha_max_y or _tilt_bfs_y>0.98*alpha_max_y:
+            print('>>> Tilt angle causes obscuration in the horizontal direction - error in interpolation'
+                  ' on the edges of the lens may be present')
 
         L_half = (_apert / 2) ** 2 / 2 / _r_min + _wall_thick / 2
 
@@ -369,9 +372,9 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
         # X, Y = np.meshgrid(x, y)
         # mask = np.zeros((_ny, _nx), dtype=bool)
 
-        X = np.outer(x, np.ones_like(y))
-        Y = np.outer(np.ones_like(x), y)
-        mask = np.zeros((_nx, _ny), dtype=bool)
+        X = np.outer(np.ones_like(y), x)
+        Y = np.outer(y, np.ones_like(x))
+        mask = np.zeros((_ny, _nx), dtype=bool)
 
         if _aperture == 'r':
             mask[X - _xc - _offst_ffs_x < -0.5 * _apert_h_ffs] = True
@@ -464,10 +467,9 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
             # X, Y = np.meshgrid(x, y)
             # mask = np.zeros((_ny, _nx), dtype=bool)
 
-            X = np.outer(x, np.ones_like(y))
-            Y = np.outer(np.ones_like(x), y)
-            mask = np.zeros((_nx, _ny), dtype=bool)
-
+            X = np.outer(np.ones_like(y), x)
+            Y = np.outer(y, np.ones_like(x))
+            mask = np.zeros((_ny, _nx), dtype=bool)
 
             if _aperture == 'r':
                 mask[X - _xc - _offst_bfs_x < -0.5 * _apert_h_bfs] = True
