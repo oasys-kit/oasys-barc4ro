@@ -4,6 +4,24 @@ from importlib.machinery import SourceFileLoader
 import os
 import subprocess
 
+#
+# memorandum (for documentation with numpydoc style)
+#
+# ** install sphinx:
+# pip install sphinx
+# pip install sphinxcontrib-apidoc
+# pip install sphinx-rtd-theme
+# pip install nbsphinx
+
+# ** some initialization
+# sphinx-quickstart  # needed only once...
+# ** iterate
+# rm -rf docs/barc4ro*.rst docs/modules.rst ./docs/generated/
+# sphinx-apidoc -o docs barc4ro
+# make clean html # results are in ./_build/html/index.html
+
+
+
 try:
     from setuptools import find_packages, setup
 except AttributeError:
