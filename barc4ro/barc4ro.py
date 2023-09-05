@@ -6,14 +6,14 @@
 # Authors/Contributors: Rafael Celestre, Oleg Chubar, Manuel Sanchez del Rio
 # Rafael.Celestre@esrf.eu
 # creation: 24.06.2019
-# last update: 30.07.2020 (v0.4)
+# last update: 06.01.2023 (v0.5)
 #
 # Check documentation:
 # Celestre, R. et al. (2020). Recent developments in x-ray lenses modelling with SRW.
 # Proc. SPIE 11493, Advances in Computational Methods for X-Ray Optics V, 11493-17.
 # arXiv:2007.15461 [physics.optics] - https://arxiv.org/abs/2007.15461
 #
-# Copyright (c) 2019-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -111,7 +111,7 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
     else:
         surfs = 2
 
-    x, y, thcknss = proj_thick_2D_crl(_foc_plane=_foc_plane, _shape=_shape, _apert_h=_apert_h, _apert_v=_apert_v,
+    x, y, thcknss = proj_thick_crl_2D(_foc_plane=_foc_plane, _shape=_shape, _apert_h=_apert_h, _apert_v=_apert_v,
                                       _r_min=_r_min, _n=surfs, _wall_thick=_wall_thick, _xc=_xc, _yc=_yc, _nx=_nx,
                                       _ny=_ny, _ang_rot_ex=_ang_rot_ex, _ang_rot_ey=_ang_rot_ey, _ang_rot_ez=_ang_rot_ez,
                                       _offst_ffs_x=_offst_ffs_x, _offst_ffs_y=_offst_ffs_y, _tilt_ffs_x=_tilt_ffs_x,
@@ -141,7 +141,56 @@ def srwl_opt_setup_CRL(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_
     return SRWLOptT(_nx, _ny, x[-1]-x[0], y[-1]-y[0], _arTr=arTr, _extTr=1, _Fx=fx, _Fy=fy, _x=_xc, _y=_yc)
 
 
-def srwl_opt_setup_CRL_metrology(_height_prof_data, _mesh, _delta, _atten_len, _wall_thick=0.0, _amp_coef=1, _xc=0,
+def srwl_opt_setup_axicon(_foc_plane, _delta, _atten_len, _shape, _apert_h, _apert_v, _h, _n, _wall_thick=0, _xc=0,
+                          _yc=0, _e_start=0, _e_fin=0, _nx=1001, _ny=1001, _axis_x=None, _axis_y=None):
+    """
+    Setup Transmission type Optical Element which simulates an axicon
+    :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
+    :param _delta: refractive index decrement (can be one number of array vs photon energy)
+    :param _atten_len: attenuation length [m] (can be one number of array vs photon energy)
+    :param _shape: 'p' - positive or 'n' - negative
+    :param _apert_h: horizontal aperture size [m]
+    :param _apert_v: vertical aperture size [m]
+    :param _h: structure height [m]
+    :param _n: number of axicons
+    :param _wall_thick:  substrat thickness [m]
+    :param _xc: horizontal coordinate of center [m]
+    :param _yc: vertical coordinate of center [m]
+    :param _e_start: initial photon energy
+    :param _e_fin: final photon energy
+    :param _nx: number of points vs horizontal position to represent the transmission element
+    :param _ny: number of points vs vertical position to represent the transmission element
+    :return: transmission (SRWLOptT) type optical element which simulates an axicon
+    """
+
+    fx = 1e+23
+    fy = 1e+23
+
+    x, y, thcknss = proj_thick_axicon_2D(_foc_plane, _shape, _apert_h, _apert_v, _h,
+                                         _wall_thick, _xc, _yc, _nx, _ny, _axis_x, _axis_y)
+
+    _xc = 0.0
+    _yc = 0.0
+
+    _ny, _nx = thcknss.shape
+
+    thcknss *= _n
+
+    amplitude_transmission = np.exp(-0.5 * thcknss / _atten_len)
+    optical_path_diff = -thcknss * _delta
+
+    arTr = np.empty((2 * _nx * _ny), dtype=thcknss.dtype)
+    arTr[0::2] = np.reshape(amplitude_transmission,(_nx*_ny))
+    arTr[1::2] = np.reshape(optical_path_diff,(_nx*_ny))
+
+    return SRWLOptT(_nx, _ny, x[-1]-x[0], y[-1]-y[0], _arTr=arTr, _extTr=1, _Fx=fx, _Fy=fy, _x=_xc, _y=_yc)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------- Arbitrary surfaces
+# ----------------------------------------------------------------------------------------------------------------------
+
+def srwl_opt_setup_arbitrary_surf(_height_prof_data, _mesh, _delta, _atten_len, _wall_thick=0.0, _amp_coef=1, _xc=0,
                                  _yc=0, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _fx=1e23, _fy=1e23, isdgr=False):
     """
     Setup Transmission type Optical Element which simulates Compound Refractive Lens (CRL) figure errors in [m] from a
@@ -164,7 +213,7 @@ def srwl_opt_setup_CRL_metrology(_height_prof_data, _mesh, _delta, _atten_len, _
     """
 
     _height_prof_data = np.reshape(_height_prof_data, (_mesh.ny, _mesh.nx))
-    _height_prof_data *=_amp_coef
+    _height_prof_data *= _amp_coef
 
     dx = (_mesh.xFin - _mesh.xStart) / _mesh.nx
     dy = (_mesh.yFin - _mesh.yStart) / _mesh.ny
@@ -205,7 +254,8 @@ def srwl_opt_setup_CRL_metrology(_height_prof_data, _mesh, _delta, _atten_len, _
     return SRWLOptT(_nx, _ny, xFin-xStart, yFin-yStart, _arTr=arTr, _extTr=1, _Fx=_fx, _Fy=_fy, _x=_xc, _y=_yc)
 
 
-def srwl_opt_setup_CRL_errors(_z_coeffs, _pol, _delta, _atten_len, _apert_h, _apert_v, _xc=0, _yc=0, _nx=1001, _ny=1001):
+def srwl_opt_setup_polynomial_surf(_z_coeffs, _pol, _delta, _atten_len, _apert_h, _apert_v, _xc=0, _yc=0, _nx=1001, _ny=1001):
+
     """
     If _z_coeffs is a single number, it refers to the piston value. So an array or random numbers representing the
     coefficients of the polynomials will be generated from -1 to 1 and later normalised to _z_coeffs. If _zcoeffs is a
@@ -258,3 +308,56 @@ def srwl_opt_setup_CRL_errors(_z_coeffs, _pol, _delta, _atten_len, _apert_h, _ap
     arTr[1::2] = np.reshape(optical_path_diff,(_nx*_ny))
 
     return SRWLOptT(_nx, _ny, xFin-xStart, yFin-yStart, _arTr=arTr, _extTr=1, _Fx=fx, _Fy=fy, _x=_xc, _y=_yc)
+
+
+def srwl_opt_setup_fractal_surf(_sigma, _psd_slope, _pix_size, _delta, _atten_len, _apert_h, _apert_v, _xc=0, _yc=0,
+                                _qr=0, _seed=None, _C=None, _dist=0):
+    """
+    Setup Transmission type Optical Element which simulates a rough surface at normal incidence in [m] with a
+    pre-determined PSD. The PSD can be defined by either the rms value of the roughness(_sigma), _psd_slope and
+    roll-off freq. (_qr); or by a directly calculated 2D PSD (_C).
+
+    :param _sigma: root-mean-square roughness Rq(m)
+    :param _psd_slope: PSD exponent = -2(H+1); Hurst exponent 0<= H <= 1, fractal dimension D = 3-H
+    :param _pix_size: pixel size in [m] for the resulting surface
+    :param _delta: refractive index decrement
+    :param _atten_len: attenuation length [m]
+    :param _apert_h: horizontal aperture size [m]
+    :param _apert_v: vertical aperture size [m]
+    :param _xc: horizontal coordinate of center [m]
+    :param _yc: vertical coordinate of center [m]
+    :param _qr: roll-off freq. (1/m); qr > (2*pi/Lx or Ly); qr < (pi/PixelWidth) - Nyquist freq.
+    :param _seed: seed for random initialisation
+    :param _C: pre-calculated 2D psd where qx and qy respect the limits imposed by _pix_size, _apert_h and _apert_v
+    :param _dist: -1 for phase = 0, 0 for uniform phase rand. distribution, 1 for rand. Gaussian dist.
+    :return: transmission (SRWLOptT) type optical element which simulates a rough surface
+    """
+
+    nx = int(_apert_h / _pix_size)
+    ny = int(_apert_v / _pix_size)
+
+    height_prof_data, y, x = fractal_surf(_sigma, _psd_slope, _pix_size, nx, ny, _qr=_qr, _dist=_dist,
+                                                   _seed=_seed, _psd=False, _C=_C)
+
+    pad_y = int(ny * 0.15)
+    pad_x = int(nx * 0.15)
+
+    thcknss = np.pad(height_prof_data, ((pad_y, pad_y), (pad_x, pad_x)), 'constant', constant_values=0)
+
+    ny, nx = thcknss.shape
+    xStart = - (_pix_size * (nx - 1)) / 2.0
+    xFin = xStart + _pix_size * (nx - 1)
+    yStart = - (_pix_size * (ny - 1)) / 2.0
+    yFin = yStart + _pix_size * (ny - 1)
+
+    amplitude_transmission = np.exp(-0.5 * thcknss / _atten_len)
+    optical_path_diff = -thcknss * _delta
+
+    arTr = np.empty((2 * nx * ny), dtype=np.float)
+    arTr[0::2] = np.reshape(amplitude_transmission, (nx * ny))
+    arTr[1::2] = np.reshape(optical_path_diff, (nx * ny))
+
+    return SRWLOptT(nx, ny, xFin - xStart, yFin - yStart, _arTr=arTr, _extTr=1, _x=_xc, _y=_yc)
+
+
+

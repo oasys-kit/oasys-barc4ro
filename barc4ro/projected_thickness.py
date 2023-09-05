@@ -6,7 +6,7 @@
 # Authors/Contributors: Rafael Celestre, Oleg Chubar, Manuel Sanchez del Rio
 # Rafael.Celestre@esrf.eu
 # creation: 24.06.2019
-# last update: 30.07.2020 (v0.4)
+# last update: 06.01.2023 (v0.4)
 #
 # Check documentation:
 # Celestre, R. et al. (2020). Recent developments in x-ray lenses modelling with SRW.
@@ -34,18 +34,23 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
+
 import numpy as np
+from numpy import fft
 from numbers import Number
 import random
-from scipy.interpolate import interp1d, interp2d
 
 from barc4ro.wavefront_fitting import *
+from barc4ro.barc4utils import *
+
+from copy import deepcopy
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------- Projected thickness calculation
 # ----------------------------------------------------------------------------------------------------------------------
 
-def proj_thick_1D_crl(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=1001, _ang_rot_ex=0, _offst_ffs_x=0,
+def proj_thick_crl_1D(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=1001, _ang_rot_ex=0, _offst_ffs_x=0,
                       _tilt_ffs_x=0, _wt_offst_ffs=0, _offst_bfs_x=0, _tilt_bfs_x=0, _wt_offst_bfs=0, isdgr=False,
                       project=True, _axis=None):
     """
@@ -228,10 +233,10 @@ def proj_thick_1D_crl(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=
         return x, delta_z_ffs
 
 
-def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_thick=0, _xc=0, _yc=0, _nx=1001,
-                      _ny=1001,_ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
+def proj_thick_crl_2D(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_thick=0, _xc=0, _yc=0, _nx=1001,
+                      _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
                       _tilt_ffs_x=0, _tilt_ffs_y=0, _ang_rot_ez_ffs=0, _wt_offst_ffs=0, _offst_bfs_x=0, _offst_bfs_y=0,
-                      _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0,_wt_offst_bfs=0, isdgr=False, project=True,
+                      _tilt_bfs_x=0, _tilt_bfs_y=0, _ang_rot_ez_bfs=0, _wt_offst_bfs=0, isdgr=False, project=True,
                       _axis_x=None, _axis_y=None, _aperture=None):
     """
 
@@ -533,6 +538,72 @@ def proj_thick_2D_crl(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_
         return x, y, delta_z_ffs
 
 
+def proj_thick_axicon_2D(_foc_plane, _shape, _apert_h, _apert_v, _h, _wall_thick=0, _xc=0, _yc=0, _nx=1001, _ny=1001,
+                        _axis_x=None, _axis_y=None):
+    """
+
+    :param _foc_plane: plane of focusing: 1- horizontal, 2- vertical, 3- both
+    :param _shape: 'p' - positive or 'n' - negative
+    :param _apert_h: horizontal aperture size [m]
+    :param _apert_v: vertical aperture size [m]
+    :param _h: height of the axicon tip/depression (always positive) [m]
+    :param _wall_thick:  support/substrate thickness [m]
+    :param _xc: horizontal coordinate of center [m]
+    :param _yc: vertical coordinate of center [m]
+    :param _nx: number of points vs horizontal position to represent the transmission element
+    :param _ny: number of points vs vertical position to represent the transmission element
+    :param _axis_x: forces the lens to be calculated on a given grid - avoids having to interpolate different calculations to the same grid
+    :param _axis_y: forces the lens to be calculated on a given grid - avoids having to interpolate different calculations to the same grid
+    :return: thickness profile
+
+    """
+
+    k = 0.7
+
+    if _axis_x is None:
+        _axis_x = np.linspace(-k * _apert_h, k * _apert_h, _nx)
+
+    if _axis_y is None:
+        _axis_y = np.linspace(-k * _apert_v, k * _apert_v, _ny)
+
+    X, Y = np.meshgrid(_axis_x, _axis_y)
+
+    delta_z =  np.zeros((_ny, _nx))
+
+    if _foc_plane == 1:
+        ls =  2*_h/_apert_h*(X-_xc) + _h
+        rs = -2*_h/_apert_h*(X-_xc) + _h
+        ls[X-_xc>0] = 0
+        rs[X-_xc<=0] = 0
+
+    elif _foc_plane == 2:
+        ls =  2*_h/_apert_v*(Y-_yc) + _h
+        rs = -2*_h/_apert_v*(Y-_yc) + _h
+        ls[Y-_yc>0] = 0
+        rs[Y-_yc<=0] = 0
+
+    if _foc_plane == 3:
+
+        R = np.sqrt((X-_xc)**2 +(Y-_yc)**2)
+        delta_z = -2*_h/_apert_h*R + _h
+        delta_z[R>_apert_h/2] = 0
+
+    else:
+        delta_z = ls+rs
+        mask = np.zeros((_ny, _nx), dtype=bool)
+        mask[X-_xc < -0.5 * _apert_h] = True
+        mask[X-_xc > 0.5  * _apert_h] = True
+        mask[Y-_yc < -0.5 * _apert_v] = True
+        mask[Y-_yc > 0.5  * _apert_v] = True
+        delta_z[mask] = 0
+
+    if _shape == 'n':
+        delta_z *=-1
+        delta_z -= np.amin(delta_z)
+
+    return _axis_x, _axis_y, (delta_z+_wall_thick)
+
+
 def polynomial_surface_2D(_z_coeffs, _pol,  _apert_h, _apert_v, _nx=1001, _ny=1001):
     """
     If _z_coeffs is a single number, it refers to the piston value. So an array or random numbers representing the
@@ -595,252 +666,368 @@ def polynomial_surface_2D(_z_coeffs, _pol,  _apert_h, _apert_v, _nx=1001, _ny=10
     return x, y, wfr
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-# ---------------------------------- Affine transformation matrices
-# ----------------------------------------------------------------------------------------------------------------------
-
-def at_translate(tx=0, ty=0, tz=0):
+def fractal_surf(_sigma, _psd_slope, _pix_size, _m, _n, _qr=0, _dist=0, _seed=None, _psd=False, _C=None):
     """
-    Translation matrix.
+    Generates a 2D random (rough) surface in [m] with a pre-determined PSD. The PSD can be defined by either the rms
+    value of the roughness (_sigma), _psd_slope and roll-off freq. (_qr); or by a directly calculated 2D PSD (_C). A
+    random phase is added to the PSD in order to generate the surface. The random distribution can be uniform (_dist=0),
+    Gaussian (_dist=1) or even zero (_dist=-1). A _seed can be given to the random generator. If _psd is True, the
+    2D PSD and its axes are also returned.
 
-    [x']   [1  0  0  tx][x]
-    [y'] = [0  1  0  ty][y]
-    [z']   [0  0  1  tx][z]
-    [1 ]   [0  0  0  1 ][1]
+    parameters (in SI units)
 
-    :param tx: translation along the x-axis
-    :param ty: translation along the y-axis
-    :param tz: translation along the z-axis
-    :return: translation matrix
+    :param _sigma: root-mean-square roughness Rq(m)
+    :param _psd_slope: PSD _psd_slope = -2(H+1); Hurst _psd_slope 0<= H <= 1, fractal dimension D = 3-H
+    :param _pix_size: pixel size in [m] for the resulting surface
+    :param _m: number of pixels in x
+    :param _n: number of pixels in y
+    :param _qr: roll-off freq. (1/m); qr > (2*pi/Lx or Ly); qr < (pi/_pix_size) - Nyquist freq.
+    :param _dist: -1 for phase = 0, 0 for uniform phase distribution, 1 for Gaussian dist.
+    :param _seed: seed for random initialisation
+    :param _psd: (bool) if true, returns Cq and its vectors
+    :param _C: pre-calculated 2D psd where qx and qy respect the limits imposed by _pix_size, _m and _n
+    :return: surface profile and axes
+
+    % Fractal topographies with different fractal dimensions.
+    Adaptation of the MATLAB function 'artificial_surf' (version 1.1.0.0) by Mona Mahboob Kanafi.
+    https://www.mathworks.com/matlabcentral/fileexchange/60817-surface-generator-artificial-randomly-rough-surfaces
     """
 
-    t = np.identity(4)
-    t[0, 3] = tx
-    t[1, 3] = ty
-    t[2, 3] = tz
-
-    return t
-
-
-def at_Rx(theta=0, isdgr=False):
-    """
-    Rotation around the x axis.
-
-    [x']   [1  0   0  0][x]
-    [y'] = [0  c  -s  0][y]
-    [z']   [0  s   c  0][z]
-    [1 ]   [0  0   0  1][1]
-
-    s = sin(theta)
-    c = cos(theta)
-
-    :param theta: rotation angle in radians
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :return: rotation matrix
-    """
-    if isdgr:
-        theta *= np.pi / 180
-
-    t = np.zeros([4, 4])
-    t[3, 3] = 1
-
-    t[0, 0] = 1
-    t[1, 1] = np.cos(theta)
-    t[1, 2] = -np.sin(theta)
-    t[2, 1] = np.sin(theta)
-    t[2, 2] = np.cos(theta)
-
-    return t
-
-
-def at_Ry(theta=0, isdgr=False):
-    """
-    Rotation around the y axis.
-
-    [x']   [ c  0  s  0][x]
-    [y'] = [ 0  1  0  0][y]
-    [z']   [-s  0  c  0][z]
-    [1 ]   [ 0  0  0  1][1]
-
-    s = sin(theta)
-    c = cos(theta)
-
-    :param theta: rotation angle in radians
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :return: rotation matrix
-    """
-    if isdgr:
-        theta *= np.pi / 180
-
-    t = np.zeros([4, 4])
-    t[3, 3] = 1
-
-    t[0, 0] = np.cos(theta)
-    t[0, 2] = np.sin(theta)
-    t[1, 1] = 1
-    t[2, 0] = -np.sin(theta)
-    t[2, 2] = np.cos(theta)
-
-    return t
-
-
-def at_Rz(theta=0, isdgr=False):
-    """
-    Rotation around the z axis.
-
-    [x']   [c  -s  0  0][x]
-    [y'] = [s   c  0  0][y]
-    [z']   [0   0  1  0][z]
-    [1 ]   [0   0  0  1][1]
-
-    s = sin(theta)
-    c = cos(theta)
-
-    :param theta: rotation angle in radians
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :return: rotation matrix
-    """
-    if isdgr:
-        theta *= np.pi / 180
-
-    t = np.zeros([4, 4])
-    t[3, 3] = 1
-
-    t[0, 0] = np.cos(theta)
-    t[0, 1] = -np.sin(theta)
-    t[1, 0] = np.sin(theta)
-    t[1, 1] = np.cos(theta)
-    t[2, 2] = 1
-
-    return t
-
-def at_apply(R, x, y, z):
-    """
-    Apply a transformation matrix R to a set of cardinal points (x,y,z)
-    :param R: transformation matrix
-    :param x: x-coordinates
-    :param y: y-coordinates
-    :param z: z-coordinates
-    :return: transformed coordinates
-    """
-    xp = x * R[0, 0] + y * R[0, 1] + z * R[0, 2]
-    yp = x * R[1, 0] + y * R[1, 1] + z * R[1, 2]
-    zp = x * R[2, 0] + y * R[2, 1] + z * R[2, 2]
-    return xp, yp, zp
-
-
-def at_rotate_1D(x, f_x, th=0, isdgr=False, project=False):
-    """
-    Rotates a set of points f_x(x) a angle of th.
-    :param x: abscissa coordinates
-    :param f_x: ordinate values
-    :param th: rotation angle
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :param project: boolean for recalculating the rotated profile on the original abscissa coordinates
-    :return: rotated coordinates pairs (x,f_x)
-    """
-    try:
-        y = np.zeros(x.shape)
-    except:
-        y = 0
-    R = at_Ry(th, isdgr)
-    xp, yp, zp = at_apply(R, x, y, f_x)
-
-    if project:
-        f = interp1d(xp, zp, bounds_error=False, fill_value=0)
-        t_profile = f(x)
-        return x, t_profile
+    # =========================================================================
+    # 2D matrix of Cq (PSD) values
+    if _C is None:
+        _C, qx, qy = uti_gen_2d_psd_from_param(_sigma, _psd_slope, _pix_size, _m, _n, _qr=_qr)
     else:
-        return xp, zp
+        qx = fft.fftshift(fft.fftfreq(_m, _pix_size))
+        qy = fft.fftshift(fft.fftfreq(_n, _pix_size))
 
+    z, y, x = fractal_surf_from_2d_psd(_C, _sigma, _pix_size, _dist, _seed)
 
-def at_rotate_2D_nested_loop(x, y, z, th_x=0, th_y=0, isdgr=False):
-    '''
-    Rotates a cloud point z(x,y) around theta_x and then, theta_y.
-    :param x: horizontal axis
-    :param y: vertical axis
-    :param z: cloud point to be rotate: z(x,y)
-    :param th_x: angle around the x-axis for the rotation
-    :param th_y: angle around the y-axis for the rotation
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :return: rotated coordinates pairs
-    '''
-
-    tilted_image = np.zeros(z.shape)
-
-    # applying RX:
-    if th_x != 0:
-        for i in range(x.size):
-            cut = z[:,i]
-            rx, tilted_image[:,i] = at_rotate_1D(y, cut, th=th_x, isdgr=isdgr, project=True)
+    if _psd:
+        return z, y, x, _C, qy, qx
     else:
-        tilted_image = z
-
-    if th_y != 0:
-        for i in range(y.size):
-            cut = tilted_image[i,:]
-            rx, tilted_image[i,:] = at_rotate_1D(x, cut, th=th_y, isdgr=isdgr, project=True)
-
-    return x, y, tilted_image
+        return z, y, x
 
 
-# 200728RC: revisit functions that are acting up
-def at_rotate_2D(x, y, f_x, th_x=0, th_y=0, isdgr=False, project=False):
-    '''
-    Rotates a cloud point z(x,y) around theta_x and then, theta_y. 200728RC ATTENTION: function is not working
-    :param x: horizontal axis
-    :param y: vertical axis
-    :param z: cloud point to be rotate: z(x,y)
-    :param th_x: angle around the x-axis for the rotation
-    :param th_y: angle around the y-axis for the rotation
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :param project: boolean for recalculating the rotated profile on the original grid
-    :return: rotated coordinates pairs
-    '''
-    Ry = at_Ry(th_y, isdgr)
-    Rx = at_Rx(th_x, isdgr)
-    R = np.matmul(Ry, Rx)
-    xp, yp, zp = at_apply(R, x, y, f_x)
+def fractal_surf_from_2d_psd(_C, _sigma, _pix_size, _dist=0, _seed=None):
+    """
+    Generates a 2D random (rough) surface in [m] with a pre-determined 2D PSD (_C). The surface roughness (rms) is
+    imposed by _sigma. A random phase is added to the PSD in order to generate the surface. The random distribution can
+    be uniform (_dist=0), Gaussian (_dist=1) or even zero (_dist=-1). A _seed can be given to the random generator.
 
-    if project:
-        f = interp2d(xp[0, :], yp[:, 0], zp, kind='linear', bounds_error=False, fill_value=0)
-        t_profile = f(x[0, :], y[:, 0])
-        return x[0, :], y[:, 0], t_profile
+    parameters (in SI units)
+
+    :param _C: 2D PSD
+    :param _sigma: root-mean-square roughness Rq(m)
+    :param _pix_size: pixel size in [m] for the resulting surface
+    :param _dist: -1 for phase = 0, 0 for uniform phase distribution, 1 for Gaussian dist.
+    :param _seed: seed for random initialisation
+    :return: surface profile and axes
+    """
+
+    n = _C.shape[0]
+    m = _C.shape[1]
+    psd = deepcopy(_C)
+    psd *= 2    # RC - 13Feb2023 - correction factor
+    # =========================================================================
+    # applying rms
+    # psd *= (_sigma / (np.sqrt(np.sum(psd) / (m * _pix_size * n * _pix_size)))) ** 2
+
+    # =========================================================================
+    # reversing operation: PSD to fft
+    # Bq = np.sqrt(psd / (_pix_size ** 2 / (n * m)))
+    Bq = np.sqrt(psd * (n * m) / (_pix_size ** 2))
+
+    # =========================================================================
+    # defining a random phase
+    np.random.seed(_seed)
+    if _dist == -1:
+        phi = np.zeros((n, m))
+    elif _dist == 0:
+        phi = -np.pi + 2 * np.pi * np.random.uniform(0, 1, (n, m))
+    elif _dist == 1:
+        phi = np.pi * np.random.normal(0, 1, (n, m))
+    # =========================================================================
+    #  generates surface
+    z = np.abs(fft.ifftshift(fft.ifft2(Bq * np.exp(-1j * phi))))
+    z -= calc_surf_rms(z)
+    z -= np.mean(z)
+    z += _sigma
+    z[int(n / 2), int(m / 2)] = np.median(z[int(n / 2)-5:int(n / 2)+5, int(m / 2)-5:int(m / 2)+5])
+    x = np.linspace(-m / 2, m / 2, m) * _pix_size
+    y = np.linspace(-n / 2, n / 2, n) * _pix_size
+    return z, y, x
+
+
+def fractal_surf_from_psd_param(_sigma, _psd_slope, _pix_size, _m, _n, _qr=0, _dist=0, _seed=None):
+    """
+    Generates a 2D random (rough) surface in [m] with a pre-determined PSD defined by the rms value of the roughness
+    (_sigma), _psd_slope and roll-off freq. (_qr); A random phase is added to the PSD in order to generate the surface.
+    The random distribution can be uniform (_dist=0), Gaussian (_dist=1) or even zero (_dist=-1). A _seed can be given
+    to the random generator.
+    parameters (in SI units)
+
+    :param _sigma: root-mean-square roughness Rq(m)
+    :param _psd_slope: PSD _psd_slope = -2(H+1); Hurst _psd_slope 0<= H <= 1, fractal dimension D = 3-H
+    :param _pix_size: pixel size in [m] for the resulting surface
+    :param _m: number of pixels in x
+    :param _n: number of pixels in y
+    :param _qr: roll-off freq. (1/m); qr > (2*pi/Lx or Ly); qr < (pi/_pix_size) - Nyquist freq.
+    :param _dist: -1 for phase = 0, 0 for uniform phase distribution, 1 for Gaussian dist.
+    :param _seed: seed for random initialisation
+    :return: surface profile and axes
+
+    """
+
+    Cq, qx, qy = uti_gen_2d_psd_from_param(_sigma, _psd_slope, _pix_size, _m, _n, _qr=_qr)
+    z, y, x = fractal_surf_from_2d_psd(Cq, _pix_size, _dist, _seed)
+
+    return z, y, x
+
+
+def bumps_and_holes_surf(n_bmp, R, x, y, bmp_type=0, xo=None, yo=None, dist_R=0, dist_xo=0, dist_yo=0, seed=69):
+    """
+
+    :param n_bmp: number of bumps. Must be >= 1
+    :param R: bump or hole main parameters:
+                Gaussian bump: R = [amp, amp_bis, sigma_x, sigma_x_bis, sigma_y, sigma_y_bis];
+                spherical bump: R = [R, R_bis]
+                sinusoid bump: R = [amp, amp_bis, f_x, f_x_bis, f_y, f_y_bis, phase, phase_bis, offset, offset_bis]
+                hole: R = [R, R_bis, depth, depth_bis]
+                through hole: R = [R, R_bis, depth]
+
+                (value, value_bis) can be (_min, _max) or (_mean, _std) depending on the dist type
+
+    :param x: horizontal axis in [m] (1D array)
+    :param y: vertical axis in [m] (1D array)
+    :param bmp_type: type of bump or hole
+                bmp_type = 0    # Gaussian bump
+                bmp_type = 1    # spherical_bump
+                bmp_type = 2    # circular holes with different depths
+                bmp_type = 3    # circular through holes
+                bmp_type = 4    # 2D sinusoid
+    :param xo: bumps or holes positions
+    :param yo: bumps or holes positions
+    :param dist_R: type of distribution for R parameters
+                dist = 0        # uniform distribution; requires _min and _max
+                dist = 1        # Gaussian distribution; requires _mean and _std
+    :param dist_xo: type of distribution for xo parameters
+    :param dist_yo: type of distribution for yo parameters
+    :param seed: seed for random generators
+    :return:
+    """
+
+    np.random.seed(seed)
+
+    # -----------------------------------------
+    # Distributions for bumps or holes
+    if bmp_type == 0:  # Gaussian bump
+        if len(R) > 6:
+            print('List of Gaussian parameters given')
+            list_R = R
+        else:
+            if dist_R == 0:
+                list_amp = np.random.uniform(R[0], R[1], n_bmp)
+                list_sigx = np.random.uniform(R[2], R[3], n_bmp)
+                list_sigy = np.random.uniform(R[4], R[5], n_bmp)
+            elif dist_R == 1:
+                list_amp = np.random.normal(R[0], R[1], n_bmp)
+                list_sigx = np.random.normal(R[2], R[3], n_bmp)
+                list_sigy = np.random.normal(R[4], R[5], n_bmp)
+                list_amp[list_amp < 0] = 0
+                list_sigx[list_sigx < 0] = 0
+                list_sigy[list_sigy < 0] = 0
+
+    elif bmp_type == 1:  # spherical_bump
+        if len(R) > 2:
+            print('List of radii given')
+            list_R = R
+        else:
+            if dist_R == 0:
+                list_R = np.random.uniform(R[0], R[1], n_bmp)
+            elif dist_R == 1:
+                list_R = np.random.normal(R[0], R[1], n_bmp)
+                list_R[list_R < 0] = 0
+
+    elif bmp_type == 2:  # circular holes with different depths
+        if len(R) > 4:
+            print('List of radii given')
+            list_R = R
+        else:
+            if dist_R == 0:
+                list_R = np.random.uniform(R[0], R[1], n_bmp)
+                list_d = np.random.uniform(R[2], R[3], n_bmp)
+            elif dist_R == 1:
+                list_R = np.random.normal(R[0], R[1], n_bmp)
+                list_d = np.random.normal(R[2], R[3], n_bmp)
+                list_R[list_R < 0] = 0
+                list_d[list_d < 0] = 0
+
+    elif bmp_type == 3:  # circular thorugh holes
+        if len(R) > 3:
+            print('List of radii given')
+            list_R = R
+        else:
+            if dist_R == 0:
+                list_R = np.random.uniform(R[0], R[1], n_bmp)
+            elif dist_R == 1:
+                list_R = np.random.normal(R[0], R[1], n_bmp)
+                list_R[list_R < 0] = 0
+            depth = R[2]
+
+    elif bmp_type == 4:  # sinusoid
+        if len(R) > 10:
+            print('List of sinusoid parameters given')
+            list_R = R
+        else:
+            if dist_R == 0:
+                list_amp = np.random.uniform(R[0], R[1], n_bmp)
+                list_f_x = np.random.uniform(R[2], R[3], n_bmp)
+                list_f_y = np.random.uniform(R[4], R[5], n_bmp)
+                list_phase = np.random.uniform(R[6], R[7], n_bmp)
+                list_offset = np.random.uniform(R[8], R[9], n_bmp)
+            elif dist_R == 1:
+                list_amp = np.random.uniform(R[0], R[1], n_bmp)
+                list_f_x = np.random.uniform(R[2], R[3], n_bmp)
+                list_f_y = np.random.uniform(R[4], R[5], n_bmp)
+                list_phase = np.random.uniform(R[6], R[7], n_bmp)
+                list_offset = np.random.uniform(R[8], R[9], n_bmp)
+
+                # -----------------------------------------
+    # Positions for bumps or holes centres
+    X = np.outer(np.ones_like(y), x)
+    Y = np.outer(y, np.ones_like(x))
+
+    if xo is None:
+        list_xo = np.random.uniform(X[0, 0], X[0, -1], n_bmp)
     else:
-        return xp[0, :], yp[:, 0], zp
-
-
-def at_rotate_2D_2steps(x, y, z, th_x=0, th_y=0, isdgr=False, project=False):
-    '''
-     Rotates a cloud point z(x,y) around theta_x and then, theta_y. 200728RC ATTENTION: function is not working
-    :param x: horizontal axis
-    :param y: vertical axis
-    :param z: cloud point to be rotate: z(x,y)
-    :param th_x: angle around the x-axis for the rotation
-    :param th_y: angle around the y-axis for the rotation
-    :param isdgr: boolean for determining if angle is in degree or in radians (default)
-    :param project: boolean for recalculating the rotated profile on the original grid
-    :return: rotated coordinates pairs
-    '''
-    Ry = at_Ry(th_y, isdgr)
-    Rx = at_Rx(th_x, isdgr)
-
-    # applying RX:
-    if th_x != 0:
-        xp, yp, zp = at_apply(Rx, x, y, z)
-        if project:
-            f = interp2d(xp[0, :], yp[:, 0], zp, kind='linear', bounds_error=False, fill_value=0)
-            t_profile = f(x[0, :], y[:, 0])
-            zp = t_profile
+        if len(xo) > 2:
+            print('List of xo given')
+            list_xo = xo
+        else:
+            if dist_xo == 0:
+                list_xo = np.random.uniform(xo[0], xo[1], n_bmp)
+            elif dist_xo == 1:
+                list_xo = np.random.normal(xo[0], xo[1], n_bmp)
+    if yo is None:
+        list_yo = np.random.uniform(Y[0, 0], Y[-1, 0], n_bmp)
     else:
-        zp = z
+        if len(yo) > 2:
+            print('List of yo given')
+            list_yo = yo
+        else:
+            if dist_yo == 0:
+                list_yo = np.random.uniform(yo[0], yo[1], n_bmp)
+            elif dist_yo == 1:
+                list_yo = np.random.normal(yo[0], yo[1], n_bmp)
 
-    # applying RY:
-    if th_y != 0:
-        xp, yp, zp = at_apply(Ry, x, y, zp)
-        if project:
-            f = interp2d(xp[0, :], yp[:, 0], zp, kind='linear', bounds_error=False, fill_value=0)
-            t_profile = f(x[0, :], y[:, 0])
-            zp = t_profile
+    # -----------------------------------------
+    # Surface calculation
+    surf = 0
+    if bmp_type == 3:
+        surf = circular_through_holes(depth, list_R, X, Y, list_xo, list_yo)
+    else:
+        for bmp in range(n_bmp):
+            if bmp_type == 0:
+                surf += gaussian_bump(list_amp[bmp], list_sigx[bmp], list_sigy[bmp], X, Y, list_xo[bmp], list_yo[bmp])
+            elif bmp_type == 1:
+                surf += spherical_bump(list_R[bmp], X, Y, list_xo[bmp], list_yo[bmp])
+            elif bmp_type == 2:
+                surf += circular_holes(list_d[bmp], list_R[bmp], X, Y, list_xo[bmp], list_yo[bmp])
+            elif bmp_type == 4:
+                surf += sinusoid_bump(list_amp[bmp], list_f_x[bmp], list_f_y[bmp], list_phase[bmp], list_offset[bmp], X,
+                                      Y, list_xo[bmp], list_yo[bmp])
 
-    return x[0, :], y[:, 0], zp
+    return surf
+
+
+def spherical_bump(R, X, Y, xo=0, yo=0):
+    """
+
+    :param R:
+    :param X:
+    :param Y:
+    :param xo:
+    :param yo:
+    :return:
+    """
+    argument = - (X - xo) ** 2 - (Y - yo) ** 2 + R ** 2
+    argument[argument < 0] = 0
+    return 2 * np.sqrt(argument)
+
+
+def gaussian_bump(b_amp, sigma_x, sigma_y, X, Y, xo=0, yo=0):
+    """
+
+    :param b_amp:
+    :param sigma_x:
+    :param sigma_y:
+    :param X:
+    :param Y:
+    :param xo:
+    :param yo:
+    :return:
+    """
+    return b_amp * np.exp(-0.5 * ((X - xo) / (sigma_x)) ** 2) * np.exp(-0.5 * ((Y - yo) / (sigma_y)) ** 2)
+
+
+def sinusoid_bump(amp, f_x, f_y, phase, offset, X, Y, xo=0, yo=0):
+    """
+
+    :param amp:
+    :param f_x:
+    :param f_y:
+    :param phase:
+    :param offset:
+    :param X:
+    :param Y:
+    :param xo:
+    :param yo:
+    :return:
+    """
+    return amp * np.sin(2 * np.pi * f_x * (X - xo) + 2 * np.pi * f_y * (Y - yo) + phase) + offset
+
+
+def circular_holes(depth, R, X, Y, xo=0, yo=0):
+    """
+
+    :param depth:
+    :param R:
+    :param X:
+    :param Y:
+    :param xo:
+    :param yo:
+    :return:
+    """
+    argument = - (X - xo) ** 2 - (Y - yo) ** 2 + R ** 2
+    mask = argument < 0
+    argument[mask] = depth
+    argument[np.logical_not(mask)] = 0
+    return argument
+
+
+def circular_through_holes(depth, R_list, X, Y, xo_list, yo_list):
+    """
+
+    :param depth:
+    :param R_list:
+    :param X:
+    :param Y:
+    :param xo_list:
+    :param yo_list:
+    :return:
+    """
+    mask = np.ones(X.shape, dtype='bool')
+    surf = np.ones(X.shape) * depth
+
+    for hole in range(len(R_list)):
+        argument = - (X - xo_list[hole]) ** 2 - (Y - yo_list[hole]) ** 2 + R_list[hole] ** 2
+        mask = np.logical_and(mask, argument < 0)
+    surf[np.logical_not(mask)] = 0
+
+    return surf
+
+
+# TODO: (RC2023SEP05)
+# def fill_ROI_with_pattern(pattern):
+#     pass
