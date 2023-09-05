@@ -11,10 +11,10 @@ except AttributeError:
 
 NAME = 'oasys-barc4ro'
 
-VERSION = '1.0.3'
+VERSION = '2023.09.05'
 ISRELEASED = False
 
-DESCRIPTION = 'Biblioteca Auxiliar do Rafael Celestre for X-ray Refractive Optics'
+DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
 README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Rafael Celestre, Luca Rebuffi'
