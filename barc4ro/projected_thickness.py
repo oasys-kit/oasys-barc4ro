@@ -50,6 +50,9 @@ from copy import deepcopy
 # ---------------------------------- Projected thickness calculation
 # ----------------------------------------------------------------------------------------------------------------------
 
+def proj_thick_1D_crl(*args, **kwargs):  # this is for back-compatibility
+    return proj_thick_crl_1D(*args, **kwargs)
+
 def proj_thick_crl_1D(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=1001, _ang_rot_ex=0, _offst_ffs_x=0,
                       _tilt_ffs_x=0, _wt_offst_ffs=0, _offst_bfs_x=0, _tilt_bfs_x=0, _wt_offst_bfs=0, isdgr=False,
                       project=True, _axis=None):
@@ -232,6 +235,9 @@ def proj_thick_crl_1D(_shape, _apert_h, _r_min, _n=2, _wall_thick=0, _xc=0, _nx=
             return x, delta_z_ffs+delta_z_bfs
         return x, delta_z_ffs
 
+
+def proj_thick_2D_crl(*args, **kwargs):  # this is for back-compatibility
+    return proj_thick_crl_2D(*args, **kwargs)
 
 def proj_thick_crl_2D(_foc_plane, _shape, _apert_h, _apert_v, _r_min, _n, _wall_thick=0, _xc=0, _yc=0, _nx=1001,
                       _ny=1001, _ang_rot_ex=0, _ang_rot_ey=0, _ang_rot_ez=0, _offst_ffs_x=0, _offst_ffs_y=0,
