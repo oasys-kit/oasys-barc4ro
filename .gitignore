@@ -1,5 +1,11 @@
-/oasys_barc4ro.egg-info/
+*/oasys_barc4ro.egg-info/*
+oasys_barc4ro.egg-info/
 /dist/
 /barc4ro/version.py
 /.idea/
 */__pycache__/*
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+# IPython
+profile_default/
+ipython_config.py
