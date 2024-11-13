@@ -33,7 +33,7 @@ VERSION = '2024.11.13'
 ISRELEASED = False
 
 DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
-README_FILE = os.path.join(os.path.dirname(__file__), 'README.txt')
+README_FILE = os.path.join(os.path.dirname(__file__), 'README.rst')
 LONG_DESCRIPTION = open(README_FILE).read()
 AUTHOR = 'Rafael Celestre, Luca Rebuffi'
 AUTHOR_EMAIL = 'rafael.celestre@esrf.fr'
