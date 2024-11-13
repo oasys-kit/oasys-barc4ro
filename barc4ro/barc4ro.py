@@ -247,7 +247,7 @@ def srwl_opt_setup_arbitrary_surf(_height_prof_data, _mesh, _delta, _atten_len, 
     amplitude_transmission = np.exp(-0.5 * thcknss / _atten_len)
     optical_path_diff = -thcknss * _delta
 
-    arTr = np.empty((2 * _nx * _ny), dtype=np.float)
+    arTr = np.empty((2 * _nx * _ny), dtype=float)
     arTr[0::2] = np.reshape(amplitude_transmission,(_nx*_ny))
     arTr[1::2] = np.reshape(optical_path_diff,(_nx*_ny))
 
@@ -353,7 +353,7 @@ def srwl_opt_setup_fractal_surf(_sigma, _psd_slope, _pix_size, _delta, _atten_le
     amplitude_transmission = np.exp(-0.5 * thcknss / _atten_len)
     optical_path_diff = -thcknss * _delta
 
-    arTr = np.empty((2 * nx * ny), dtype=np.float)
+    arTr = np.empty((2 * nx * ny), dtype=float)
     arTr[0::2] = np.reshape(amplitude_transmission, (nx * ny))
     arTr[1::2] = np.reshape(optical_path_diff, (nx * ny))
 

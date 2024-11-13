@@ -29,7 +29,7 @@ except AttributeError:
 
 NAME = 'oasys-barc4ro'
 
-VERSION = '2023.09.05'
+VERSION = '2024.11.13'
 ISRELEASED = False
 
 DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
