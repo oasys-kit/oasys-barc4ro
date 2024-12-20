@@ -29,7 +29,7 @@ except AttributeError:
 
 NAME = 'oasys-barc4ro'
 
-VERSION = '2024.11.13'
+VERSION = '2024.12.20'
 ISRELEASED = False
 
 DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
@@ -67,7 +67,8 @@ CLASSIFIERS = (
 )
 
 INSTALL_REQUIRES = (
-    'oasys-srwpy>=1.0.3',
+    'scipy',
+    # 'oasys-srwpy>=1.0.3',
 )
 
 SETUP_REQUIRES = (
