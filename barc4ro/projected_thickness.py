@@ -35,8 +35,6 @@
 #
 #############################################################################*/
 
-import numpy as np
-from numpy import fft
 from numbers import Number
 import random
 

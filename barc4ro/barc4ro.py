@@ -41,9 +41,9 @@ try:
     from oasys_srw.srwlib import SRWLRadMesh, SRWLOptT
 except:
     try:
-        from srwlib import SRWLRadMesh, SRWLOptT
+        from srwpy.srwlib import SRWLRadMesh, SRWLOptT
     except:
-        pass
+        from srwlib import SRWLRadMesh, SRWLOptT
 
 from barc4ro.projected_thickness import *
 

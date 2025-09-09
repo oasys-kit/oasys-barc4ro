@@ -20,8 +20,6 @@ import subprocess
 # sphinx-apidoc -o docs barc4ro
 # make clean html # results are in ./_build/html/index.html
 
-
-
 try:
     from setuptools import find_packages, setup
 except AttributeError:
@@ -29,7 +27,7 @@ except AttributeError:
 
 NAME = 'oasys-barc4ro'
 
-VERSION = '2024.12.20'
+VERSION = '2025.09.09'
 ISRELEASED = False
 
 DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
@@ -68,7 +66,6 @@ CLASSIFIERS = (
 
 INSTALL_REQUIRES = (
     'scipy',
-    # 'oasys-srwpy>=1.0.3',
 )
 
 SETUP_REQUIRES = (
