@@ -9,3 +9,4 @@ oasys_barc4ro.egg-info/
 # IPython
 profile_default/
 ipython_config.py
+/build/
