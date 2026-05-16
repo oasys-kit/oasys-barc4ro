@@ -1,3 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
 */oasys_barc4ro.egg-info/*
 oasys_barc4ro.egg-info/
 /dist/
