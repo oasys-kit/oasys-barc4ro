@@ -10,7 +10,7 @@
 
 import barc4ro.barc4ro as b4RO
 
-from wofrysrw.util.srw import *
+from barc4ro.srw import *
 
 if __name__ == '__main__':
     print()
