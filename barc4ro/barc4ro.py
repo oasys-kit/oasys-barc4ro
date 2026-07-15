@@ -35,16 +35,7 @@
 #
 #############################################################################*/
 
-import numpy as np
-
-try:
-    from oasys_srw.srwlib import SRWLRadMesh, SRWLOptT
-except:
-    try:
-        from srwpy.srwlib import SRWLRadMesh, SRWLOptT
-    except:
-        from srwlib import SRWLRadMesh, SRWLOptT
-
+from wofrysrw.util.srw import SRWLOptT
 from barc4ro.projected_thickness import *
 
 # ----------------------------------------------------------------------------------------------------------------------

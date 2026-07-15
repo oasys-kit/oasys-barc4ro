@@ -11,8 +11,7 @@
 import barc4ro.barc4ro as b4RO
 from numpy import reshape, asarray
 
-from oasys_srw.srwlib import *
-from oasys_srw.uti_plot import *
+from wofrysrw.util.srw import *
 
 def package_dirname(package):
     if isinstance(package, str): package = __import__(package, fromlist=[""])
