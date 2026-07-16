@@ -1,84 +1,27 @@
 #! /usr/bin/env python3
+"""Build hook for oasys-barc4ro.
 
-from importlib.machinery import SourceFileLoader
+All static metadata lives in pyproject.toml. This file exists ONLY to generate
+barc4ro/version.py (git revision stamping) at build time, which is imperative
+logic and therefore cannot be expressed declaratively in pyproject.toml.
+
+The setuptools.build_meta backend imports and runs this file, so the generation
+still happens for `pip install .`, `pip install -e .` and `python -m build`.
+"""
+
+import importlib.util
 import os
 import subprocess
 
-#
-# memorandum (for documentation with numpydoc style)
-#
-# ** install sphinx:
-# pip install sphinx
-# pip install sphinxcontrib-apidoc
-# pip install sphinx-rtd-theme
-# pip install nbsphinx
+from setuptools import setup
 
-# ** some initialization
-# sphinx-quickstart  # needed only once...
-# ** iterate
-# rm -rf docs/barc4ro*.rst docs/modules.rst ./docs/generated/
-# sphinx-apidoc -o docs barc4ro
-# make clean html # results are in ./_build/html/index.html
-
-try:
-    from setuptools import find_packages, setup
-except AttributeError:
-    from setuptools import find_packages, setup
-
-NAME = 'oasys-barc4ro'
-
+# Keep in sync with [project] version in pyproject.toml
 VERSION = '2026.07.15.3'
 ISRELEASED = False
 
-DESCRIPTION = 'X-ray Refractive Optics Library for Physical Optics'
-README_FILE = os.path.join(os.path.dirname(__file__), 'README.rst')
-LONG_DESCRIPTION = open(README_FILE).read()
-AUTHOR = 'Rafael Celestre, Luca Rebuffi'
-AUTHOR_EMAIL = 'rafael.celestre@esrf.fr'
-URL = 'https://github.com/oasys-kit/oasys-barc4ro'
-DOWNLOAD_URL = 'https://github.com/oasys-kit/oasys-barc4ro'
-MAINTAINER = 'Luca Rebuffi'
-MAINTAINER_EMAIL = 'lrebuffi@anl.gov'
-LICENSE = 'GPLv3'
 
-KEYWORDS = (
-    'dictionary',
-    'glossary',
-    'synchrotron'
-    'simulation',
-)
-
-CLASSIFIERS = (
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Console',
-    'Environment :: Plugins',
-    'Programming Language :: Python :: 3',
-    'License :: OSI Approved :: '
-    'GNU General Public License v3 or later (GPLv3+)',
-    'Operating System :: POSIX',
-    'Operating System :: Microsoft :: Windows',
-    'Topic :: Scientific/Engineering :: Visualization',
-    'Topic :: Software Development :: Libraries :: Python Modules',
-    'Intended Audience :: Education',
-    'Intended Audience :: Science/Research',
-    'Intended Audience :: Developers',
-)
-
-INSTALL_REQUIRES = (
-    'scipy'
-)
-
-SETUP_REQUIRES = (
-    'setuptools',
-)
-
-
-# Return the git revision as a string
 def git_version():
-    """Return the git revision as a string.
-
-    Copied from numpy setup.py
-    """
+    """Return the git revision as a string. Copied from numpy setup.py."""
     def _minimal_ext_cmd(cmd):
         # construct minimal environment
         env = {}
@@ -96,10 +39,18 @@ def git_version():
     try:
         out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
         GIT_REVISION = out.strip().decode('ascii')
-    except OSError:
+    except (OSError, subprocess.SubprocessError):
         GIT_REVISION = "Unknown"
 
     return GIT_REVISION
+
+
+def _load_existing_version(path='barc4ro/version.py'):
+    """Import an already-generated version.py without SourceFileLoader.load_module()."""
+    spec = importlib.util.spec_from_file_location('barc4ro.version', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def write_version_py(filename='barc4ro/version.py'):
@@ -119,56 +70,23 @@ if not release:
     FULLVERSION = VERSION
     if os.path.exists('.git'):
         GIT_REVISION = git_version()
-    elif os.path.exists('barc4ro/version.py'):
+    elif os.path.exists(filename):
         # must be a source distribution, use existing version file
-        version = SourceFileLoader('barc4ro.version', 'barc4ro/version.py').load_module()
-        GIT_REVISION = version.git_revision
+        GIT_REVISION = _load_existing_version(filename).git_revision
     else:
         GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
         FULLVERSION += '.dev0+' + GIT_REVISION[:7]
 
-    a = open(filename, 'w')
-    try:
+    with open(filename, 'w') as a:
         a.write(cnt % {'version': VERSION,
                        'full_version': FULLVERSION,
                        'git_revision': GIT_REVISION,
                        'isrelease': str(ISRELEASED)})
-    finally:
-        a.close()
 
 
-PACKAGES = find_packages(exclude=('*.tests', '*.tests.*', 'tests.*', 'tests'))
-
-PACKAGE_DATA = {
-}
-
-
-def setup_package():
+if __name__ == '__main__' or True:
+    # Runs both under `python setup.py ...` and when imported by the PEP 517 backend.
     write_version_py()
-    setup(
-        name=NAME,
-        version=VERSION,
-        description=DESCRIPTION,
-        long_description=LONG_DESCRIPTION,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        maintainer=MAINTAINER,
-        maintainer_email=MAINTAINER_EMAIL,
-        url=URL,
-        download_url=DOWNLOAD_URL,
-        license=LICENSE,
-        keywords=KEYWORDS,
-        classifiers=CLASSIFIERS,
-        packages=PACKAGES,
-        package_data=PACKAGE_DATA,
-        # extra setuptools args
-        zip_safe=False,  # the package can run out of an .egg file
-        include_package_data=True,
-        install_requires=INSTALL_REQUIRES,
-        setup_requires=SETUP_REQUIRES,
-    )
-
-if __name__ == '__main__':
-    setup_package()
+    setup()

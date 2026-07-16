@@ -1,0 +1,62 @@
+# Memorandum (for documentation with numpydoc style)
+#
+# ** install sphinx:
+#     pip install sphinx sphinxcontrib-apidoc sphinx-rtd-theme nbsphinx
+# ** some initialization
+#     sphinx-quickstart   # needed only once...
+# ** iterate
+#     rm -rf docs/barc4ro*.rst docs/modules.rst ./docs/generated/
+#     sphinx-apidoc -o docs barc4ro
+#     make clean html     # results are in ./_build/html/index.html
+
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oasys-barc4ro"
+version = "2026.07.16"
+description = "X-ray Refractive Optics Library for Physical Optics"
+readme = "README.rst"
+license = "GPL-3.0-or-later"
+# license-files = ["LICENSE"]   # <- uncomment if a LICENSE file exists in the repo
+authors = [
+    { name = "Rafael Celestre", email = "rafael.celestre@esrf.fr" },
+    { name = "Luca Rebuffi", email = "lrebuffi@anl.gov" },
+]
+maintainers = [
+    { name = "Luca Rebuffi", email = "lrebuffi@anl.gov" },
+]
+keywords = [
+    "dictionary",
+    "glossary",
+    "synchrotron",
+    "simulation",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Plugins",
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://github.com/oasys-kit/oasys-barc4ro"
+Download = "https://github.com/oasys-kit/oasys-barc4ro"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
